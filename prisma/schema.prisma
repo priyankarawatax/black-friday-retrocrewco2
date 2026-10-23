@@ -1,0 +1,176 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
+// enough when changing adapters.
+// See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
+datasource db {
+<<<<<<< HEAD
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id                  String    @id @db.VarChar(191)
+  shop                String    @db.VarChar(191)
+  state               String    @db.VarChar(191)
+  isOnline            Boolean   @default(false)
+  scope               String?   @db.Text
+  expires             DateTime?
+  accessToken         String    @db.Text
+  userId              BigInt?
+  firstName           String?   @db.VarChar(191)
+  lastName            String?   @db.VarChar(191)
+  email               String?   @db.VarChar(191)
+  accountOwner        Boolean   @default(false)
+  locale              String?   @db.VarChar(191)
+  collaborator        Boolean?  @default(false)
+  emailVerified       Boolean?  @default(false)
+  refreshToken        String?   @db.Text
+  refreshTokenExpires DateTime?
+}
+
+model CampaignSettings {
+  id                       BigInt               @id @default(autoincrement()) @db.UnsignedBigInt
+  shop                     String               @unique @db.VarChar(191)
+  campaignName             String               @db.VarChar(255)
+  startDate                DateTime?
+  endDate                  DateTime?
+  timezone                 String               @db.VarChar(191)
+  enabled                  Boolean              @default(false)
+  englishMessage           String               @db.Text
+  frenchMessage            String               @db.Text
+  englishTicketMessage     String               @db.Text
+  frenchTicketMessage      String               @db.Text
+  englishMotivationMessage String               @db.Text
+  frenchMotivationMessage  String               @db.Text
+  englishThankYouMessage   String               @db.Text
+  frenchThankYouMessage    String               @db.Text
+  maxWinners               Int                  @default(1) @db.UnsignedInt
+  preventRepeatWinner      Boolean              @default(false)
+  showWinnerRemoveAction   Boolean              @default(true)
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
+  entries                  GiveawayEntry[]
+  tickets                  GiveawayTicket[]
+  winners                  GiveawayWinner[]
+  klaviyoEvents            KlaviyoEventOutbox[]
+}
+
+model GiveawayEntry {
+  id                BigInt               @id @default(autoincrement()) @db.UnsignedBigInt
+  shop              String               @db.VarChar(191)
+  campaignId        BigInt               @db.UnsignedBigInt
+  shopifyCustomerId String               @db.VarChar(191)
+  customerName      String               @db.VarChar(255)
+  customerEmail     String               @db.VarChar(320)
+  shopifyOrderId    String               @db.VarChar(191)
+  orderNumber       String               @db.VarChar(191)
+  orderDate         DateTime
+  eligibleAmount    Decimal              @db.Decimal(18, 2)
+  currencyCode      String               @db.VarChar(3)
+  source            String               @default("SHOPIFY_ORDER") @db.VarChar(64)
+  status            String               @default("ELIGIBLE") @db.VarChar(32)
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  campaign          CampaignSettings     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  tickets           GiveawayTicket[]
+  winners           GiveawayWinner[]
+  klaviyoEvents     KlaviyoEventOutbox[]
+
+  @@unique([shop, shopifyOrderId])
+  @@index([shop, campaignId, status, orderDate])
+  @@index([shop, shopifyCustomerId])
+  @@index([shop, customerEmail])
+}
+
+model KlaviyoEventOutbox {
+  id            BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  shop          String           @db.VarChar(191)
+  campaignId    BigInt           @db.UnsignedBigInt
+  entryId       BigInt           @db.UnsignedBigInt
+  uniqueId      String           @unique @db.VarChar(512)
+  metricName    String           @db.VarChar(191)
+  payload       Json
+  status        String           @default("PENDING") @db.VarChar(32)
+  attempts      Int              @default(0) @db.UnsignedInt
+  nextAttemptAt DateTime?
+  sentAt        DateTime?
+  lastError     String?          @db.Text
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  campaign      CampaignSettings @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  entry         GiveawayEntry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@unique([shop, entryId])
+  @@index([status, nextAttemptAt])
+  @@index([shop, campaignId, status])
+}
+
+model GiveawayTicket {
+  id           BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  shop         String           @db.VarChar(191)
+  campaignId   BigInt           @db.UnsignedBigInt
+  entryId      BigInt           @db.UnsignedBigInt
+  ticketNumber String           @db.VarChar(191)
+  status       String           @default("VALID") @db.VarChar(32)
+  createdAt    DateTime         @default(now())
+  campaign     CampaignSettings @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  entry        GiveawayEntry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  winners      GiveawayWinner[]
+
+  @@unique([campaignId, ticketNumber])
+  @@index([shop, campaignId, status])
+  @@index([shop, ticketNumber])
+  @@index([entryId, status])
+}
+
+model GiveawayWinner {
+  id             BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  shop           String           @db.VarChar(191)
+  campaignId     BigInt           @db.UnsignedBigInt
+  ticketId       BigInt           @unique @db.UnsignedBigInt
+  entryId        BigInt           @db.UnsignedBigInt
+  customerId     String           @db.VarChar(191)
+  shopifyOrderId String           @db.VarChar(191)
+  drawId         String           @db.VarChar(191)
+  status         String           @default("CONFIRMED") @db.VarChar(32)
+  drawnAt        DateTime         @default(now())
+  campaign       CampaignSettings @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  ticket         GiveawayTicket   @relation(fields: [ticketId], references: [id], onDelete: Restrict)
+  entry          GiveawayEntry    @relation(fields: [entryId], references: [id], onDelete: Restrict)
+
+  @@unique([shop, drawId])
+  @@index([shop, campaignId, drawnAt])
+  @@index([shop, customerId])
+  @@index([entryId])
+}
+=======
+  provider = "sqlite"
+  url      = "file:dev.sqlite"
+}
+
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+>>>>>>> 94b205be95f485b7be068fae132ef0849f996c7c
