@@ -1,0 +1,29 @@
+[data-black-friday-drawer-root] {
+  display: none;
+}
+
+.black-friday-cart-drawer {
+  box-sizing: border-box;
+  width: 100%;
+  margin-block: 1rem;
+  padding: 1rem;
+  color: var(--bf-drawer-text);
+  background: var(--bf-drawer-background);
+  border: 1px solid color-mix(in srgb, var(--bf-drawer-text) 16%, transparent);
+  border-inline-start: 4px solid var(--bf-drawer-accent);
+  border-radius: var(--bf-drawer-radius);
+}
+
+.black-friday-cart-drawer p {
+  margin: 0;
+  color: inherit;
+  line-height: 1.5;
+}
+
+.black-friday-cart-drawer__tickets {
+  font-weight: 700;
+}
+
+.black-friday-cart-drawer__motivation {
+  opacity: 0.72;
+}

@@ -1,0 +1,50 @@
+{% assign campaign_config = shop.metafields["$app"].black_friday_checkout_config.value %}
+<div
+  data-black-friday-drawer-root
+  data-config="{{ campaign_config | json | escape }}"
+  data-locale="{{ request.locale.iso_code | escape }}"
+  data-fallback-entry="{{ 'cart_giveaway.entry' | t | escape }}"
+  data-fallback-tickets="{{ 'cart_giveaway.tickets' | t | escape }}"
+  data-fallback-motivation="{{ 'cart_giveaway.motivation' | t | escape }}"
+  style="--bf-drawer-background: {{ block.settings.background }}; --bf-drawer-text: {{ block.settings.text_color }}; --bf-drawer-accent: {{ block.settings.accent_color }}; --bf-drawer-radius: {{ block.settings.corner_radius }}px;"
+  hidden
+></div>
+
+{% schema %}
+{
+  "name": "t:cart_giveaway.drawer_name",
+  "target": "body",
+  "stylesheet": "giveaway-cart-drawer.css",
+  "javascript": "giveaway-cart-drawer.js",
+  "settings": [
+    {
+      "type": "color_background",
+      "id": "background",
+      "label": "t:cart_giveaway.background",
+      "default": "#f4f4f4"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "t:cart_giveaway.text_color",
+      "default": "#202223"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "t:cart_giveaway.accent_color",
+      "default": "#008060"
+    },
+    {
+      "type": "range",
+      "id": "corner_radius",
+      "label": "t:cart_giveaway.corner_radius",
+      "min": 0,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,12 @@
+{
+  "cart_giveaway": {
+    "block_name": "Concours du Vendredi fou",
+    "background": "Arrière-plan",
+    "text_color": "Couleur du texte",
+    "accent_color": "Couleur d'accent",
+    "corner_radius": "Rayon des coins",
+    "entry": "Vous participez à notre concours du Vendredi fou !",
+    "tickets": "Ce panier vous rapporte {tickets} billets.",
+    "motivation": "Plus vous avez de billets, plus vous avez de chances de gagner."
+  }
+}

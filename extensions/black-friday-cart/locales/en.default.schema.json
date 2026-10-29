@@ -1,0 +1,10 @@
+{
+  "cart_giveaway": {
+    "block_name": "Black Friday giveaway",
+    "drawer_name": "Giveaway cart drawer",
+    "background": "Background",
+    "text_color": "Text color",
+    "accent_color": "Accent color",
+    "corner_radius": "Corner radius"
+  }
+}

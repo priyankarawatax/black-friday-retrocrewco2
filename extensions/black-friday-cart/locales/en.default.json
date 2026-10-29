@@ -1,0 +1,12 @@
+{
+  "cart_giveaway": {
+    "block_name": "Black Friday giveaway",
+    "background": "Background",
+    "text_color": "Text color",
+    "accent_color": "Accent color",
+    "corner_radius": "Corner radius",
+    "entry": "You're entered in our Black Friday Giveaway!",
+    "tickets": "This cart earns you {tickets} tickets.",
+    "motivation": "The more tickets you have, the higher your chances to win."
+  }
+}

@@ -9,7 +9,6 @@ generator client {
 // enough when changing adapters.
 // See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
 datasource db {
-<<<<<<< HEAD
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
@@ -35,52 +34,52 @@ model Session {
 }
 
 model CampaignSettings {
-  id                       BigInt               @id @default(autoincrement()) @db.UnsignedBigInt
-  shop                     String               @unique @db.VarChar(191)
-  campaignName             String               @db.VarChar(255)
+  id                       BigInt                @id @default(autoincrement()) @db.UnsignedBigInt
+  shop                     String                @unique @db.VarChar(191)
+  campaignName             String                @db.VarChar(255)
   startDate                DateTime?
   endDate                  DateTime?
-  timezone                 String               @db.VarChar(191)
-  enabled                  Boolean              @default(false)
-  englishMessage           String               @db.Text
-  frenchMessage            String               @db.Text
-  englishTicketMessage     String               @db.Text
-  frenchTicketMessage      String               @db.Text
-  englishMotivationMessage String               @db.Text
-  frenchMotivationMessage  String               @db.Text
-  englishThankYouMessage   String               @db.Text
-  frenchThankYouMessage    String               @db.Text
-  maxWinners               Int                  @default(1) @db.UnsignedInt
-  preventRepeatWinner      Boolean              @default(false)
-  showWinnerRemoveAction   Boolean              @default(true)
-  createdAt                DateTime             @default(now())
-  updatedAt                DateTime             @updatedAt
+  timezone                 String                @db.VarChar(191)
+  enabled                  Boolean               @default(false)
+  englishMessage           String                @db.Text
+  frenchMessage            String                @db.Text
+  englishTicketMessage     String                @db.Text
+  frenchTicketMessage      String                @db.Text
+  englishMotivationMessage String                @db.Text
+  frenchMotivationMessage  String                @db.Text
+  englishThankYouMessage   String                @db.Text
+  frenchThankYouMessage    String                @db.Text
+  maxWinners               Int                   @default(1) @db.UnsignedInt
+  preventRepeatWinner      Boolean               @default(false)
+  showWinnerRemoveAction   Boolean               @default(true)
+  createdAt                DateTime              @default(now())
+  updatedAt                DateTime              @updatedAt
   entries                  GiveawayEntry[]
   tickets                  GiveawayTicket[]
   winners                  GiveawayWinner[]
-  klaviyoEvents            KlaviyoEventOutbox[]
+  giveawayEmails           GiveawayEmailOutbox[]
 }
 
 model GiveawayEntry {
-  id                BigInt               @id @default(autoincrement()) @db.UnsignedBigInt
-  shop              String               @db.VarChar(191)
-  campaignId        BigInt               @db.UnsignedBigInt
-  shopifyCustomerId String               @db.VarChar(191)
-  customerName      String               @db.VarChar(255)
-  customerEmail     String               @db.VarChar(320)
-  shopifyOrderId    String               @db.VarChar(191)
-  orderNumber       String               @db.VarChar(191)
+  id                BigInt                @id @default(autoincrement()) @db.UnsignedBigInt
+  shop              String                @db.VarChar(191)
+  campaignId        BigInt                @db.UnsignedBigInt
+  shopifyCustomerId String                @db.VarChar(191)
+  customerName      String                @db.VarChar(255)
+  customerEmail     String                @db.VarChar(320)
+  shopifyOrderId    String                @db.VarChar(191)
+  orderNumber       String                @db.VarChar(191)
   orderDate         DateTime
-  eligibleAmount    Decimal              @db.Decimal(18, 2)
-  currencyCode      String               @db.VarChar(3)
-  source            String               @default("SHOPIFY_ORDER") @db.VarChar(64)
-  status            String               @default("ELIGIBLE") @db.VarChar(32)
-  createdAt         DateTime             @default(now())
-  updatedAt         DateTime             @updatedAt
-  campaign          CampaignSettings     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  eligibleAmount    Decimal               @db.Decimal(18, 2)
+  currencyCode      String                @db.VarChar(3)
+  source            String                @default("SHOPIFY_ORDER") @db.VarChar(64)
+  status            String                @default("ELIGIBLE") @db.VarChar(32)
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  campaign          CampaignSettings      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   tickets           GiveawayTicket[]
   winners           GiveawayWinner[]
-  klaviyoEvents     KlaviyoEventOutbox[]
+  giveawayEmails    GiveawayEmailOutbox[]
 
   @@unique([shop, shopifyOrderId])
   @@index([shop, campaignId, status, orderDate])
@@ -88,7 +87,7 @@ model GiveawayEntry {
   @@index([shop, customerEmail])
 }
 
-model KlaviyoEventOutbox {
+model GiveawayEmailOutbox {
   id            BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
   shop          String           @db.VarChar(191)
   campaignId    BigInt           @db.UnsignedBigInt
@@ -149,28 +148,3 @@ model GiveawayWinner {
   @@index([shop, customerId])
   @@index([entryId])
 }
-=======
-  provider = "sqlite"
-  url      = "file:dev.sqlite"
-}
-
-model Session {
-  id            String    @id
-  shop          String
-  state         String
-  isOnline      Boolean   @default(false)
-  scope         String?
-  expires       DateTime?
-  accessToken   String
-  userId        BigInt?
-  firstName     String?
-  lastName      String?
-  email         String?
-  accountOwner  Boolean   @default(false)
-  locale        String?
-  collaborator  Boolean?  @default(false)
-  emailVerified Boolean?  @default(false)
-  refreshToken        String?
-  refreshTokenExpires DateTime?
-}
->>>>>>> 94b205be95f485b7be068fae132ef0849f996c7c

@@ -130,6 +130,25 @@ export async function persistGiveawayOrder(
   order: GiveawayOrder,
   options: PersistGiveawayOrderOptions = {},
 ): Promise<GiveawayOrderResult> {
+  const existingEntry = await prisma.giveawayEntry.findUnique({
+    where: { shop_shopifyOrderId: { shop, shopifyOrderId: order.id } },
+    select: {
+      _count: { select: { tickets: true } },
+      giveawayEmails: {
+        where: { metricName: "Giveaway Tickets Confirmed" },
+        select: { uniqueId: true },
+        take: 1,
+      },
+    },
+  });
+  if (existingEntry) {
+    return {
+      status: "duplicate",
+      tickets: existingEntry._count.tickets,
+      klaviyoEventUniqueId: existingEntry.giveawayEmails[0]?.uniqueId ?? null,
+    };
+  }
+
   const campaign = await prisma.campaignSettings.findUnique({
     where: { shop },
     select: {
@@ -138,13 +157,15 @@ export async function persistGiveawayOrder(
       enabled: true,
       startDate: true,
       endDate: true,
+      timezone: true,
     },
   });
 
   if (!campaign?.enabled || !campaign.startDate || !campaign.endDate) {
     return { status: "ineligible", reason: "Campaign is not enabled or scheduled." };
   }
-  if (order.processedAt < campaign.startDate || order.processedAt > campaign.endDate) {
+  const campaignEndDate = campaign.endDate;
+  if (order.processedAt < campaign.startDate || order.processedAt > campaignEndDate) {
     return { status: "ineligible", reason: "Order is outside the campaign dates." };
   }
 
@@ -169,14 +190,18 @@ export async function persistGiveawayOrder(
         select: {
           id: true,
           _count: { select: { tickets: true } },
-          klaviyoEvents: { select: { uniqueId: true }, take: 1 },
+          giveawayEmails: {
+            where: { metricName: "Giveaway Tickets Confirmed" },
+            select: { uniqueId: true },
+            take: 1,
+          },
         },
       });
       if (existing) {
         return {
           status: "duplicate",
           tickets: existing._count.tickets,
-          klaviyoEventUniqueId: existing.klaviyoEvents[0]?.uniqueId ?? null,
+          klaviyoEventUniqueId: existing.giveawayEmails[0]?.uniqueId ?? null,
         } as const;
       }
 
@@ -236,8 +261,12 @@ export async function persistGiveawayOrder(
         const firstTicketNumber = formatTicketNumber(firstTicket);
         const lastTicketNumber = formatTicketNumber(firstTicket + ticketCount - 1);
         klaviyoEventUniqueId = `giveaway:${campaign.id.toString()}:${order.id}`;
+        const luckyDrawDate = new Intl.DateTimeFormat("en-US", {
+          dateStyle: "long",
+          timeZone: campaign.timezone,
+        }).format(campaignEndDate);
 
-        await tx.klaviyoEventOutbox.create({
+        await tx.giveawayEmailOutbox.create({
           data: {
             shop,
             campaignId: campaign.id,
@@ -255,7 +284,11 @@ export async function persistGiveawayOrder(
               totalTickets,
               firstTicket: firstTicketNumber,
               lastTicket: lastTicketNumber,
-              ticketRange: `${firstTicketNumber} - ${lastTicketNumber}`,
+              ticketRange:
+                firstTicketNumber === lastTicketNumber
+                  ? firstTicketNumber
+                  : `${firstTicketNumber} - ${lastTicketNumber}`,
+              luckyDrawDate,
             },
           },
         });

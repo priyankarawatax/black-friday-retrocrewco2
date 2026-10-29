@@ -1,0 +1,64 @@
+{% if request.page_type == 'cart' %}
+  {% assign campaign_config = shop.metafields["$app"].black_friday_checkout_config.value %}
+  <div
+    class="black-friday-cart"
+    data-black-friday-cart
+    data-locale="{{ request.locale.iso_code | escape }}"
+    data-fallback-entry="{{ 'cart_giveaway.entry' | t | escape }}"
+    data-fallback-tickets="{{ 'cart_giveaway.tickets' | t | escape }}"
+    data-fallback-motivation="{{ 'cart_giveaway.motivation' | t | escape }}"
+    style="--bf-cart-background: {{ block.settings.background }}; --bf-cart-text: {{ block.settings.text_color }}; --bf-cart-accent: {{ block.settings.accent_color }}; --bf-cart-radius: {{ block.settings.corner_radius }}px;"
+    hidden
+    {{ block.shopify_attributes }}
+  >
+    <script type="application/json" data-black-friday-config>
+      {{ campaign_config | json }}
+    </script>
+    <p class="black-friday-cart__entry" data-black-friday-entry></p>
+    <p class="black-friday-cart__tickets" data-black-friday-tickets></p>
+    <p class="black-friday-cart__motivation" data-black-friday-motivation></p>
+  </div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "t:cart_giveaway.block_name",
+  "target": "content",
+  "class": "black-friday-cart-block",
+  "enabled_on": {
+    "templates": ["cart"]
+  },
+  "stylesheet": "giveaway-cart.css",
+  "javascript": "giveaway-cart.js",
+  "settings": [
+    {
+      "type": "color_background",
+      "id": "background",
+      "label": "t:cart_giveaway.background",
+      "default": "#f4f4f4"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "t:cart_giveaway.text_color",
+      "default": "#202223"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "t:cart_giveaway.accent_color",
+      "default": "#008060"
+    },
+    {
+      "type": "range",
+      "id": "corner_radius",
+      "label": "t:cart_giveaway.corner_radius",
+      "min": 0,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    }
+  ]
+}
+{% endschema %}

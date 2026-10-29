@@ -1,10 +1,18 @@
 import type { ActionFunctionArgs } from "react-router";
 
 import { orderFromWebhook, persistGiveawayOrder } from "../services/giveaway-order.server";
+import { processKlaviyoOutbox } from "../services/klaviyo.server";
+import { preservesExistingGiveawayTickets } from "../services/order-lifecycle";
 import { authenticate } from "../shopify.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { payload, shop, topic } = await authenticate.webhook(request);
+
+  if (preservesExistingGiveawayTickets(topic)) {
+    console.log(`Preserved existing giveaway tickets for ${topic} on ${shop}.`);
+    return new Response();
+  }
+
   const financialStatus = (payload as { financial_status?: string }).financial_status;
 
   if (financialStatus && financialStatus !== "paid") {
@@ -22,6 +30,16 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const result = await persistGiveawayOrder(shop, order, {
     queueKlaviyoEvent: true,
   });
+  if (result.status !== "ineligible" && result.klaviyoEventUniqueId) {
+    const klaviyo = await processKlaviyoOutbox({
+      uniqueId: result.klaviyoEventUniqueId,
+    });
+    if (!klaviyo.configured) {
+      console.warn("Klaviyo event queued; replace the dummy private API key to send it.");
+    } else if (klaviyo.failed > 0) {
+      console.error(`Klaviyo failed to accept the giveaway event for order ${order.number}.`);
+    }
+  }
   console.log(
     `Processed ${topic} for ${shop}, order ${order.number}: ${result.status}`,
   );

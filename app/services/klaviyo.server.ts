@@ -1,9 +1,9 @@
-import type { KlaviyoEventOutbox, Prisma } from "@prisma/client";
+import type { GiveawayEmailOutbox, Prisma } from "@prisma/client";
 
 import prisma from "../db.server";
 
 const KLAVIYO_EVENTS_ENDPOINT = "https://a.klaviyo.com/api/events";
-const DEFAULT_REVISION = "2026-04-15";
+const DEFAULT_REVISION = "2026-10-15";
 const PROCESSING_TIMEOUT_MS = 10 * 60 * 1_000;
 
 type GiveawayKlaviyoPayload = {
@@ -18,6 +18,7 @@ type GiveawayKlaviyoPayload = {
   firstTicket: string;
   lastTicket: string;
   ticketRange: string;
+  luckyDrawDate: string;
 };
 
 type ProcessOptions = {
@@ -38,7 +39,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function parsePayload(value: Prisma.JsonValue): GiveawayKlaviyoPayload | null {
   if (!isRecord(value)) return null;
-
   const requiredStrings = [
     "email",
     "customerName",
@@ -49,24 +49,28 @@ function parsePayload(value: Prisma.JsonValue): GiveawayKlaviyoPayload | null {
     "firstTicket",
     "lastTicket",
     "ticketRange",
+    "luckyDrawDate",
   ] as const;
   if (requiredStrings.some((key) => typeof value[key] !== "string")) return null;
   if (
     typeof value.ticketsEarned !== "number" ||
     typeof value.totalTickets !== "number"
-  ) {
-    return null;
-  }
-
+  ) return null;
   return value as GiveawayKlaviyoPayload;
+}
+
+function privateApiKey() {
+  const value = process.env.KLAVIYO_PRIVATE_API_KEY?.trim() ?? "";
+  if (!value || /dummy|replace|your[_-]?key/i.test(value)) return null;
+  return value;
 }
 
 function retryDelayMs(attempt: number) {
   return Math.min(60 * 60 * 1_000, 30_000 * 2 ** Math.min(attempt, 7));
 }
 
-async function sendEvent(event: KlaviyoEventOutbox) {
-  const apiKey = process.env.KLAVIYO_PRIVATE_API_KEY?.trim();
+async function sendEvent(event: GiveawayEmailOutbox) {
+  const apiKey = privateApiKey();
   if (!apiKey) throw new Error("Klaviyo is not configured.");
 
   const payload = parsePayload(event.payload);
@@ -97,6 +101,7 @@ async function sendEvent(event: KlaviyoEventOutbox) {
               first_ticket: payload.firstTicket,
               last_ticket: payload.lastTicket,
               ticket_range: payload.ticketRange,
+              lucky_draw_date: payload.luckyDrawDate,
             },
             time: payload.orderDate,
             unique_id: event.uniqueId,
@@ -118,8 +123,7 @@ async function sendEvent(event: KlaviyoEventOutbox) {
       signal: AbortSignal.timeout(8_000),
     });
 
-    if (response.ok) return { ok: true as const };
-
+    if (response.status === 202) return { ok: true as const };
     const responseText = (await response.text()).slice(0, 1_500);
     return {
       ok: false as const,
@@ -138,15 +142,16 @@ async function sendEvent(event: KlaviyoEventOutbox) {
 export async function processKlaviyoOutbox(
   options: ProcessOptions = {},
 ): Promise<KlaviyoProcessResult> {
-  if (!process.env.KLAVIYO_PRIVATE_API_KEY?.trim()) {
+  if (!privateApiKey()) {
     return { configured: false, processed: 0, sent: 0, failed: 0 };
   }
 
   const now = new Date();
   const staleBefore = new Date(now.getTime() - PROCESSING_TIMEOUT_MS);
   const limit = Math.max(1, Math.min(options.limit ?? 25, 100));
-  const candidates = await prisma.klaviyoEventOutbox.findMany({
+  const candidates = await prisma.giveawayEmailOutbox.findMany({
     where: {
+      metricName: "Giveaway Tickets Confirmed",
       ...(options.uniqueId ? { uniqueId: options.uniqueId } : {}),
       OR: [
         { status: "PENDING" },
@@ -161,9 +166,8 @@ export async function processKlaviyoOutbox(
   let processed = 0;
   let sent = 0;
   let failed = 0;
-
   for (const candidate of candidates) {
-    const claimed = await prisma.klaviyoEventOutbox.updateMany({
+    const claimed = await prisma.giveawayEmailOutbox.updateMany({
       where: {
         id: candidate.id,
         status: candidate.status,
@@ -177,7 +181,7 @@ export async function processKlaviyoOutbox(
     const result = await sendEvent(candidate);
     if (result.ok) {
       sent += 1;
-      await prisma.klaviyoEventOutbox.update({
+      await prisma.giveawayEmailOutbox.update({
         where: { id: candidate.id },
         data: {
           status: "SENT",
@@ -191,15 +195,14 @@ export async function processKlaviyoOutbox(
     }
 
     failed += 1;
-    const nextAttemptAt = result.retryable
-      ? new Date(Date.now() + retryDelayMs(candidate.attempts))
-      : null;
-    await prisma.klaviyoEventOutbox.update({
+    await prisma.giveawayEmailOutbox.update({
       where: { id: candidate.id },
       data: {
         status: result.retryable ? "FAILED" : "DEAD",
         attempts: { increment: 1 },
-        nextAttemptAt,
+        nextAttemptAt: result.retryable
+          ? new Date(Date.now() + retryDelayMs(candidate.attempts))
+          : null,
         lastError: result.error.slice(0, 4_000),
       },
     });

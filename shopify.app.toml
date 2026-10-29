@@ -1,17 +1,15 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-<<<<<<< HEAD
-client_id = "e410089d3d85248f39089fc6dac682c9"
-name = "Black Friday giveaway"
+client_id = "694b3da06b22eaef773d1a0742a6331e"
+name = "black-friday-retrocrewco"
 application_url = "https://example.com"
 embedded = true
 
 [build]
 automatically_update_urls_on_dev = true
-include_config_on_deploy = true
 
 [webhooks]
-api_version = "2026-07"
+api_version = "2027-01"
 
   [[webhooks.subscriptions]]
   uri = "/webhooks/app/scopes_update"
@@ -23,24 +21,14 @@ api_version = "2026-07"
 
   [[webhooks.subscriptions]]
   uri = "/webhooks/orders/process"
-  topics = [ "orders/paid", "orders/fulfilled" ]
+  topics = [ "orders/fulfilled", "orders/paid" ]
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_customers,read_orders,write_products,write_metaobjects,write_metaobject_definitions"
+scopes = "read_orders,write_products,write_metaobjects,write_metaobject_definitions"
 
 [auth]
 redirect_urls = [ "https://example.com/api/auth" ]
-=======
-client_id = "694b3da06b22eaef773d1a0742a6331e"
-application_url = "https://example.com"
-embedded = true
-name = "black-friday-retrocrewco"
-
-[access_scopes]
-# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products,write_metaobjects,write_metaobject_definitions"
->>>>>>> 94b205be95f485b7be068fae132ef0849f996c7c
 
 [product.metafields.app.demo_info]
 type = "single_line_text_field"
@@ -50,17 +38,14 @@ description = "Tracks products created by the Shopify app template for developme
   [product.metafields.app.demo_info.access]
   admin = "merchant_read_write"
 
-<<<<<<< HEAD
 [shop.metafields.app.black_friday_checkout_config]
 type = "json"
-name = "Black Friday checkout configuration"
-description = "Publishes the active giveaway schedule and localized checkout messages to the checkout extension"
+name = "Black Friday cart configuration"
+description = "Publishes the active giveaway schedule and localized messages to the cart theme app block"
 
   [shop.metafields.app.black_friday_checkout_config.access]
   admin = "merchant_read_write"
 
-=======
->>>>>>> 94b205be95f485b7be068fae132ef0849f996c7c
 [metaobjects.app.example]
 name = "Example"
 description = "An example metaobject definition created by this template"
@@ -76,24 +61,3 @@ required = true
 [metaobjects.app.example.fields.description]
 name = "Description"
 type = "multi_line_text_field"
-<<<<<<< HEAD
-=======
-
-[webhooks]
-api_version = "2027-01"
-
-  [[webhooks.subscriptions]]
-  uri = "/webhooks/app/uninstalled"
-  topics = [ "app/uninstalled" ]
-
-  [[webhooks.subscriptions]]
-  uri = "/webhooks/app/scopes_update"
-  topics = [ "app/scopes_update" ]
-
-[auth]
-redirect_urls = [ "https://example.com/api/auth" ]
-
-[build]
-include_config_on_deploy = true
-automatically_update_urls_on_dev = true
->>>>>>> 94b205be95f485b7be068fae132ef0849f996c7c

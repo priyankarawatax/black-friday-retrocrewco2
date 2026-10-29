@@ -1,0 +1,10 @@
+{
+  "cart_giveaway": {
+    "block_name": "Concours du Vendredi fou",
+    "drawer_name": "Concours dans le panier",
+    "background": "Arrière-plan",
+    "text_color": "Couleur du texte",
+    "accent_color": "Couleur d'accent",
+    "corner_radius": "Rayon des coins"
+  }
+}
