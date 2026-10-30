@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "694b3da06b22eaef773d1a0742a6331e"
-name = "black-friday-retrocrewco"
+client_id = "2f5386a6a1dba53bb6534b5883faec75"
+name = "Black Friday Retrocrewco"
 application_url = "https://example.com"
 embedded = true
 
@@ -9,7 +9,7 @@ embedded = true
 automatically_update_urls_on_dev = true
 
 [webhooks]
-api_version = "2027-01"
+api_version = "2026-07"
 
   [[webhooks.subscriptions]]
   uri = "/webhooks/app/scopes_update"
@@ -25,10 +25,12 @@ api_version = "2027-01"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_orders,write_products,write_metaobjects,write_metaobject_definitions"
+scopes = "read_customers,read_orders,write_metaobject_definitions,write_metaobjects,write_products"
+optional_scopes = [ ]
+use_legacy_install_flow = false
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
+redirect_urls = [ ]
 
 [product.metafields.app.demo_info]
 type = "single_line_text_field"
