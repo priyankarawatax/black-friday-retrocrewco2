@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import prisma from "../db.server";
+import { KLAVIYO_CAMPAIGN_ORDER_PAID_METRIC } from "./klaviyo-event";
 
 const TICKET_BATCH_SIZE = 1_000;
 const TICKET_PREFIX = "UVT-";
@@ -136,7 +137,7 @@ export async function persistGiveawayOrder(
     select: {
       _count: { select: { tickets: true } },
       giveawayEmails: {
-        where: { metricName: "Giveaway Tickets Confirmed" },
+        where: { metricName: KLAVIYO_CAMPAIGN_ORDER_PAID_METRIC },
         select: { uniqueId: true },
         take: 1,
       },
@@ -192,7 +193,7 @@ export async function persistGiveawayOrder(
           id: true,
           _count: { select: { tickets: true } },
           giveawayEmails: {
-            where: { metricName: "Giveaway Tickets Confirmed" },
+            where: { metricName: KLAVIYO_CAMPAIGN_ORDER_PAID_METRIC },
             select: { uniqueId: true },
             take: 1,
           },
@@ -261,7 +262,12 @@ export async function persistGiveawayOrder(
         });
         const firstTicketNumber = formatTicketNumber(firstTicket);
         const lastTicketNumber = formatTicketNumber(firstTicket + ticketCount - 1);
-        klaviyoEventUniqueId = `giveaway:${campaign.id.toString()}:${order.id}`;
+        const ticketNumbers = Array.from(
+          { length: ticketCount },
+          (_, index) => formatTicketNumber(firstTicket + index),
+        );
+        klaviyoEventUniqueId =
+          `campaign-order-paid:${campaign.id.toString()}:${order.id}`;
         const luckyDrawDate = new Intl.DateTimeFormat("en-US", {
           dateStyle: "long",
           timeZone: campaign.timezone,
@@ -273,7 +279,7 @@ export async function persistGiveawayOrder(
             campaignId: campaign.id,
             entryId: entry.id,
             uniqueId: klaviyoEventUniqueId,
-            metricName: "Giveaway Tickets Confirmed",
+            metricName: KLAVIYO_CAMPAIGN_ORDER_PAID_METRIC,
             payload: {
               email: order.customerEmail,
               customerName: order.customerName,
@@ -283,6 +289,7 @@ export async function persistGiveawayOrder(
               campaignName: campaign.campaignName,
               ticketsEarned: ticketCount,
               totalTickets,
+              ticketNumbers,
               firstTicket: firstTicketNumber,
               lastTicket: lastTicketNumber,
               ticketRange:

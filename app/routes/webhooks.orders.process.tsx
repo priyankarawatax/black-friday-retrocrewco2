@@ -37,7 +37,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (!klaviyo.configured) {
       console.warn("Klaviyo event queued; replace the dummy private API key to send it.");
     } else if (klaviyo.failed > 0) {
-      console.error(`Klaviyo failed to accept the giveaway event for order ${order.number}.`);
+      console.error("Klaviyo event delivery failed.", {
+        failed: klaviyo.failed,
+        error: klaviyo.errors[0] ?? "unknown-error",
+      });
     }
   }
   console.log(
